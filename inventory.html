@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    input, button {
+      padding: 10px;
+      width: 100%;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Manage Inventory</h1>
+    <div>
+      <input type="text" id="itemCode" placeholder="Item Code">
+      <input type="text" id="itemName" placeholder="Item Name">
+      <input type="number" id="itemPrice" placeholder="Price">
+      <button id="addItem">Add Item</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryTable">
+        <!-- Items will be dynamically added here -->
+      </tbody>
+    </table>
+    <button onclick="location.href='billing.html'">Go to Billing</button>
+  </div>
+
+  <script>
+    // Redirect to login if not logged in
+    if (!localStorage.getItem("isLoggedIn")) {
+      window.location.href = "login.html";
+    }
+
+    const inventoryTable = document.getElementById("inventoryTable");
+    const inventory = JSON.parse(localStorage.getItem("inventory")) || {
+      "101": { name: "Pen", price: 10 },
+      "102": { name: "Notebook", price: 50 },
+      "103": { name: "Eraser", price: 5 }
+    };
+
+    function displayInventory() {
+      inventoryTable.innerHTML = "";
+      for (const code in inventory) {
+        const item = inventory[code];
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${code}</td>
+          <td><input type="text" value="${item.name}" class="itemName"></td>
+          <td><input type="number" value="${item.price}" class="itemPrice"></td>
+          <td>
+            <button class="saveItem" data-code="${code}">Save</button>
+            <button class="deleteItem" data-code="${code}">Delete</button>
+          </td>
+        `;
+        inventoryTable.appendChild(row);
+      }
+    }
+
+    displayInventory();
+
+    document.getElementById("addItem").addEventListener("click", () => {
+      const code = document.getElementById("itemCode").value.trim();
+      const name = document.getElementById("itemName").value.trim();
+      const price = parseFloat(document.getElementById("itemPrice").value);
+
+      if (code && name && !isNaN(price)) {
+        inventory[code] = { name, price };
+        localStorage.setItem("inventory", JSON.stringify(inventory));
+        displayInventory();
+        document.getElementById("itemCode").value = "";
+        document.getElementById("itemName").value = "";
+        document.getElementById("itemPrice").value = "";
+      }
+    });
+
+    inventoryTable.addEventListener("click", (e) => {
+      const code = e.target.getAttribute("data-code");
+
+      if (e.target.classList.contains("saveItem")) {
+        const row = e.target.closest("tr");
+        const name = row.querySelector(".itemName").value;
+        const price = parseFloat(row.querySelector(".itemPrice").value);
+
+        if (name && !isNaN(price)) {
+          inventory[code] = { name, price };
+          localStorage.setItem("inventory", JSON.stringify(inventory));
+          displayInventory();
+        }
+      }
+
+      if (e.target.classList.contains("deleteItem")) {
+        delete inventory[code];
+        localStorage.setItem("inventory", JSON.stringify(inventory));
+        displayInventory();
+      }
+    });
+  </script>
+</body>
+</html>
